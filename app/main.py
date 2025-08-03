@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from . import db, models, crud, schemas, utils
 import secrets
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=db.engine)
@@ -29,12 +30,6 @@ def get_db():
 
 def get_teacher_from_session(token: str = None):
     return sessions.get(token)
-
-from fastapi.responses import HTMLResponse
-
-@app.get("/register", response_class=HTMLResponse)
-def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
 
 @app.post("/register")
 def register_teacher(response: Response, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
