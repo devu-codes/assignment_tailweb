@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Student Management Dashboard</h1>
+            <form action="/logout" method="POST" style="float: right;">
+                <button type="submit">Logout</button>
+            </form>
+        </header>
+
+        <section class="add-student">
+            <h2>Add New Student</h2>
+            <form id="addStudentForm" action="/student/add" method="POST">
+                <div class="form-group">
+                    <label for="name">Student Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Subject:</label>
+                    <input type="text" id="subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="marks">Marks:</label>
+                    <input type="number" id="marks" name="marks" min="0" max="100" required>
+                </div>
+                <button type="submit">Add Student</button>
+            </form>
+        </section>
+
+        <section class="student-list">
+            <h2>Student List</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Subject</th>
+                        <th>Marks</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.id }}</td>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.subject }}</td>
+                        <td>{{ student.marks }}</td>
+                        <td>
+                            <button onclick="showEditForm({{ student.id }})">Edit</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Edit Student Marks</h3>
+            <form id="editStudentForm">
+                <input type="hidden" id="editStudentId" name="studentId">
+                <div class="form-group">
+                    <label for="editMarks">New Marks:</label>
+                    <input type="number" id="editMarks" name="marks" min="0" max="100" required>
+                </div>
+                <button type="submit">Update</button>
+                <button type="button" onclick="hideEditForm()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script>
+        function showEditForm(studentId) {
+            document.getElementById('editStudentId').value = studentId;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function hideEditForm() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editStudentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const studentId = document.getElementById('editStudentId').value;
+            const marks = document.getElementById('editMarks').value;
+
+            try {
+                const response = await fetch(`/student/${studentId}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ marks: parseInt(marks) }),
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Failed to update marks');
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>
